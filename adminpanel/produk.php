@@ -38,7 +38,6 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
             </ol>
         </nav>
 
-        
         <!-- tambah produk -->
         <div class="my-5 col-12 col-md-6">
             <h3>Tambah Produk</h3>
@@ -53,11 +52,7 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
                     <label for="kategori">Kategori</label>
                     <select name="kategori" id="kategori" class="form-control" required>
                         <option value="">Pilih Satu</option>
-                        <option value="">Gelang</option>
-                        <option value="">Cincin</option>
-                        <option value="">Boucad</option>
-                        <option value="">Kalung</option>
-                        <option value="">Gantungan Kunci</option>
+
                         <?php
                             while($data=mysqli_fetch_array($queryKategori)){
 
