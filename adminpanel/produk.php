@@ -12,7 +12,7 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>produk</title>
+    <title>Produk</title>
     <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../fontawesome/css/fontawesome.min.css">
 </head>
@@ -53,6 +53,11 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
                     <label for="kategori">Kategori</label>
                     <select name="kategori" id="kategori" class="form-control" required>
                         <option value="">Pilih Satu</option>
+                        <option value="">Gelang</option>
+                        <option value="">Cincin</option>
+                        <option value="">Boucad</option>
+                        <option value="">Kalung</option>
+                        <option value="">Gantungan Kunci</option>
                         <?php
                             while($data=mysqli_fetch_array($queryKategori)){
 
