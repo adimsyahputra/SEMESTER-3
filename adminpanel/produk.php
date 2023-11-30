@@ -4,7 +4,8 @@ require "koneksi.php";
 
 $queryKategori = mysqli_query($con, "SELECT * FROM kategori");
 $jumlahKategori = mysqli_num_rows($queryKategori);
-$query = mysqli_query($con, "SELECT * FROM produk");
+$query = mysqli_query($con, "SELECT produk.*, kategori.nama AS nama_kategori FROM produk
+            LEFT JOIN kategori ON produk.kategori_id = kategori.id_kategori");
 $jumlahProduk = mysqli_num_rows($query);
 ?>
 
