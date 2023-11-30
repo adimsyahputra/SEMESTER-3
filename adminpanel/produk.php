@@ -4,7 +4,9 @@ require "koneksi.php";
 
 $queryKategori = mysqli_query($con, "SELECT * FROM kategori");
 $jumlahKategori = mysqli_num_rows($queryKategori);
-
+$query = mysqli_query($con, "SELECT produk.*, kategori.nama AS nama_kategori FROM produk
+            LEFT JOIN kategori ON produk.kategori_id = kategori.id_kategori");
+$jumlahProduk = mysqli_num_rows($query);
 ?>
 
 <!DOCTYPE html>
@@ -23,7 +25,7 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
     }
 </style>
 <body>
-    <?php require"navbar.php"; ?>
+    <?php require "navbar.php"; ?>
     <div class="container mt-5">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -42,7 +44,7 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
         <div class="my-5 col-12 col-md-6">
             <h3>Tambah Produk</h3>
 
-            <form action="" method="post" enctype="multipart/form-data">
+            <form action="produk-detail.php" method="post" enctype="multipart/form-data">
                 <div>
                     <label for="nama">Nama</label>
                     <input type="text" name="nama" id="nama" class="form-control" autocomplete="off" required> 
@@ -54,12 +56,11 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
                         <option value="">Pilih Satu</option>
 
                         <?php
-                            while($data=mysqli_fetch_array($queryKategori)){
-
+                        while($data=mysqli_fetch_array($queryKategori)){
                         ?>
                             <option value="<?php echo $data['id_kategori']; ?>"><?php echo $data['nama']?></option>
                         <?php
-                            }
+                        }
                         ?>
                     </select>
                 </div>
@@ -88,11 +89,24 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
                 </div>
 
                 <div>
-                    <button type="submit" class="btn btn-primary" name="simpan">Simpan</button>
+                    <button type="submit" class="btn btn-primary mt-3" name="simpan">Simpan</button>
                 </div>
             </form>
 
             <?php
+                
+                function generateRandomString($length = 10) {
+                    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    $randomString = '';
+                
+                    for ($i = 0; $i < $length; $i++) {
+                        $randomString .= $characters[rand(0, strlen($characters) - 1)];
+                    }
+                
+                    return $randomString;
+                }
+                
+                
                 if (isset($_POST['simpan'])) {
                     $nama = htmlspecialchars($_POST['nama']);
                     $kategori = htmlspecialchars($_POST['kategori']);
@@ -107,120 +121,117 @@ $jumlahKategori = mysqli_num_rows($queryKategori);
                     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
                     $image_size = $_FILES["foto"]["size"];
 
-                    $random_name = $generateRandomString(20);
-                    $new_name = $random_name . "." . $imageFileType;
+                    $random_name = generateRandomString(20);
+                    $new_name = $nama_file;
 
                     if ($nama == '' || $kategori == '' || $harga == '') {
                         // Pesan kesalahan jika data tidak lengkap
-            ?>
-                        <div class="alert alert-warning mt-3" role="alert">
-                            Nama, kategori, dan harga wajib diisi
-                        </div>
-            <?php
+                        echo '<div class="alert alert-warning mt-3" role="alert">Nama, kategori, dan harga wajib diisi</div>';
                     } else {
                         if ($nama_file != '') {
                             if ($image_size > 500000) {
                                 // Pesan kesalahan jika ukuran file terlalu besar
-            ?>
-                                <div class="alert alert-warning mt-3" role="alert">
-                                    File tidak boleh lebih dari 500 Kb
-                                </div>
-            <?php
+                                echo '<div class="alert alert-warning mt-3" role="alert">File tidak boleh lebih dari 500 Kb</div>';
                             } else {
                                 // Pengecekan tipe file
-                                $allowed_types = array('jpg', 'jpeg' ,'png', 'gif');
+                                $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
                                 if (!in_array($imageFileType, $allowed_types)) {
                                     // Pesan kesalahan jika tipe file tidak diizinkan
-            ?>
-                                    <div class="alert alert-warning mt-3" role="alert">
-                                        File wajib bertipe JPG, PNG, atau GIF
-                                    </div>
-            <?php
+                                    echo '<div class="alert alert-warning mt-3" role="alert">File wajib bertipe JPG, PNG, atau GIF</div>';
                                 } else {
-                                    // Pindahkan file ke direktori yang benar dan simpan dengan nama baru
-                                    move_uploaded_file($_FILES["foto"]["tmp_name"], $target_dir . $new_name);
-
-                                    // Query insert untuk produk table
-                                    $queryTambah = mysqli_query($con, "INSERT INTO produk (kategori_id, nama, harga, foto, detail, stok) VALUES 
-                                        ('$kategori', '$nama', '$harga', '$new_name', '$detail', '$ketersediaan_stok')");
-
-                                    if ($queryTambah) {
-                                        // Pesan sukses jika produk berhasil disimpan
-            ?>
-                                        <div class="alert alert-primary mt-3" role="alert">
-                                            Produk Berhasil Disimpan
-                                        </div>
-
-                                        <meta http-equiv="refresh" content="4; url=produk.php" />
-            <?php
+                                    if (!file_exists($target_dir)) {
+                                        mkdir($target_dir, 0755, true);
+                                    }
+                                    // Check if the file is successfully uploaded
+                                    if (move_uploaded_file($_FILES["foto"]["tmp_name"], $target_dir . $new_name)) {
+                                        // Query insert untuk produk table
+                                        $queryTambah = mysqli_query($con, "INSERT INTO produk (kategori_id, nama, harga, foto, detail, stok) VALUES 
+                                            ('$kategori', '$nama', '$harga', '$new_name', '$detail', '$ketersediaan_stok')");
+                                    
+                                        if ($queryTambah) {
+                                            // Pesan sukses jika produk berhasil disimpan
+                                            echo '<div class="alert alert-primary mt-3" role="alert">Produk Berhasil Disimpan</div>';
+                                            echo '<meta http-equiv="refresh" content="4; url=produk.php" />';
+                                        } else {
+                                            // Tampilkan pesan kesalahan SQL jika query tidak berhasil
+                                            echo mysqli_error($con);
+                                        }
                                     } else {
-                                        // Tampilkan pesan kesalahan SQL jika query tidak berhasil
-                                        echo mysqli_error($con);
+                                        // Tampilkan pesan kesalahan jika file tidak dapat diunggah
+                                        echo '<div class="alert alert-warning mt-3" role="alert">Gagal mengunggah file</div>';
                                     }
                                 }
                             }
                         } else {
                             // Tampilkan pesan kesalahan jika file foto tidak diunggah
-            ?>
+                            echo '<div class="alert alert-warning mt-3" role="alert">Foto produk wajib diunggah</div>';
+                        }
+                    }
+                    ?>
+  
                             <div class="alert alert-warning mt-3" role="alert">
                                 Foto produk wajib diunggah
                             </div>
             <?php
                         }
-                    }
-                }
             ?>
         </div>
 
-        <div class="mt-3 mb-5">
-            <h2>List Produk</h2>
-
-            <div class="table-responsive mt-5">
-                <table class="table">
-                    <thead>
+        <div class="table-responsive mt-5">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Nama</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Ketersediaan Stok</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+                if($jumlahProduk == 0){
+            ?>
+                <tr>
+                    <td colspan=6 class="text-center">Data produk tidak tersedia</td>
+                </tr>
+            <?php
+                }
+                else{
+                    $jumlah = 1;
+                    while($data=mysqli_fetch_array($query)){
+            ?>
                         <tr>
-                            <th>No.</th>
-                            <th>Nama</th>
-                            <th>Kategori</th>
-                            <th>Harga</th>
-                            <th>Ketersediaan Stok</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                            if($jumlahProduk==0){
-                        ?>
-                            <tr>
-                                <td colspan=6 class="text-center">Data produk tidak tersedia</td>
-                            </tr>
-
-                        <?php
-                            }
-                            else{
-                                $jumlah = 1;
-                                while($data=mysqli_fetch_array($query)){
-                        ?>
-                                <tr>
-                                    <td><?php echo $jumlah; ?></td>
-                                    <td><?php echo $data['nama']; ?></td>
-                                    <td><?php echo $data['nama_kategori']; ?></td>
-                                    <td><?php echo $data['harga']; ?></td>
-                                    <td><?php echo $data['stok']; ?></td>
-                                    <td>
-                                        <a href="produk-detail.php?id=<?php echo $data['id_produk']; ?>" class="btn btn-info">
-                                        <i class="fas fa-search"></i></a>
-                                    </td>
-                                </tr>
-                        <?php
-                                $jumlah++;
+                            <td><?php echo $jumlah; ?></td>
+                            <td><?php echo $data['nama']; ?></td>
+                            <td>
+                            <?php
+                                // Check if the key exists before accessing it
+                                if(isset($data['nama_kategori'])) {
+                                    echo $data['nama_kategori'];
+                                } else {
+                                    echo "Nama Kategori Tidak Tersedia";
                                 }
-                            }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                            ?>
+                            </td>
+                            <td><?php echo $data['harga']; ?></td>
+                            <td><?php echo $data['stok']; ?></td>
+                            <td>
+                                <a href="produk-detail.php?id=<?php echo $data['id_produk']; ?>" class="btn btn-info">
+                                <i class="fas fa-search"></i></a>
+                            </td>
+                        </tr>
+            <?php
+                        $jumlah++;
+                    }
+                }
+            ?>
+        </tbody>
+    </table>
+</div>
+    </div>
+
     </div>
 
     <script src="../bootstrap/js/bootstrap.bundel.min.js"></script>
