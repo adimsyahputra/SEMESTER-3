@@ -4,8 +4,7 @@ require "koneksi.php";
 
 $queryKategori = mysqli_query($con, "SELECT * FROM kategori");
 $jumlahKategori = mysqli_num_rows($queryKategori);
-$query = mysqli_query($con, "SELECT produk.*, kategori.nama AS nama_kategori FROM produk
-            LEFT JOIN kategori ON produk.kategori_id = kategori.id_kategori");
+$query = mysqli_query($con, "SELECT * FROM produk");
 $jumlahProduk = mysqli_num_rows($query);
 ?>
 
@@ -44,7 +43,7 @@ $jumlahProduk = mysqli_num_rows($query);
         <div class="my-5 col-12 col-md-6">
             <h3>Tambah Produk</h3>
 
-            <form action="produk-detail.php" method="post" enctype="multipart/form-data">
+            <form action="" method="post" enctype="multipart/form-data">
                 <div>
                     <label for="nama">Nama</label>
                     <input type="text" name="nama" id="nama" class="form-control" autocomplete="off" required> 
@@ -122,7 +121,7 @@ $jumlahProduk = mysqli_num_rows($query);
                     $image_size = $_FILES["foto"]["size"];
 
                     $random_name = generateRandomString(20);
-                    $new_name = $nama_file;
+                    $new_name = $random_name . "." . $imageFileType;
 
                     if ($nama == '' || $kategori == '' || $harga == '') {
                         // Pesan kesalahan jika data tidak lengkap
@@ -143,7 +142,7 @@ $jumlahProduk = mysqli_num_rows($query);
                                         mkdir($target_dir, 0755, true);
                                     }
                                     // Check if the file is successfully uploaded
-                                    if (move_uploaded_file($_FILES["foto"]["tmp_name"], $target_dir . $new_name)) {
+                                    if (move_uploaded_file($_FILES["foto"]["tmp_name"], $target_dir . $nama_file)) {
                                         // Query insert untuk produk table
                                         $queryTambah = mysqli_query($con, "INSERT INTO produk (kategori_id, nama, harga, foto, detail, stok) VALUES 
                                             ('$kategori', '$nama', '$harga', '$new_name', '$detail', '$ketersediaan_stok')");
@@ -206,14 +205,14 @@ $jumlahProduk = mysqli_num_rows($query);
                             <td><?php echo $jumlah; ?></td>
                             <td><?php echo $data['nama']; ?></td>
                             <td>
-                            <?php
-                                // Check if the key exists before accessing it
-                                if(isset($data['nama_kategori'])) {
-                                    echo $data['nama_kategori'];
-                                } else {
-                                    echo "Nama Kategori Tidak Tersedia";
-                                }
-                            ?>
+                                <?php
+                                    // Check if the key exists before accessing it
+                                    if(isset($data['nama_kategori'])) {
+                                        echo $data['nama_kategori'];
+                                    } else {
+                                        echo "Nama Kategori Tidak Tersedia";
+                                    }
+                                ?>
                             </td>
                             <td><?php echo $data['harga']; ?></td>
                             <td><?php echo $data['stok']; ?></td>
